@@ -47,7 +47,7 @@ public_users.get('/isbn/:isbn',function (req, res) {
 
   getBookByISBN(isbn)
   .then((book) => {
-    return res.status(200).json({book: book});
+    return res.status(200).json({book});
   })
   .catch((error) => {
     return res.status(400).json({message: error.message});  
@@ -58,12 +58,9 @@ public_users.get('/isbn/:isbn',function (req, res) {
 // Get book by isbn helper function
 function getBookByISBN(isbn){
   return new Promise((resolve, reject) => {
-    const booksArray = Object.entries(books);
-    const isbnFilter = booksArray.filter(([key, value]) => key === isbn);
-
-    if( isbnFilter.length > 0 ) {
-      const book = Object.fromEntries(isbnFilter);
-      resolve(book);
+    const book = books[isbn];
+    if( book ) {
+      resolve({isbn: isbn, book});
     } else {
       reject(new Error("Book not found"));
     }
@@ -141,9 +138,7 @@ public_users.get('/review/:isbn',function (req, res) {
   
   getBookByISBN(isbn)
     .then((book) => {
-      const bookArray = Object.values(book);
-      const bookReview = bookArray[0].reviews;
-      return res.status(200).json({ISBN: isbn, review: bookReview});
+      return res.status(200).json({ISBN: book.isbn, title: book.book.title, review: book.book.reviews});
     })
     .catch((error) => {
       return res.status(400).json({message: error.message});  
