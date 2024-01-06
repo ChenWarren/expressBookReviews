@@ -67,10 +67,39 @@ regd_users.put("/auth/review/:isbn", (req, res) => {
 // Update a book review helper function
 function updateReview(isbn, user, review){
   return new Promise((resolve, reject) => {
+    if( !books[isbn] ) return reject(new Error("Book not found"));
+    if( !books[isbn].reviews ) books[isbn].reviews = {};
+
     books[isbn].reviews[user] = {review};
     resolve(books[isbn]);
   });
- 
+}
+
+// Delete a book review
+regd_users.delete("/auth/review/:isbn", (req, res) => {
+  const { isbn } = req.params;
+  if( !isbn ) return res.status(400).json({message: "ISBN is required"});
+  const {user} = req.body;
+  if( !user ) return res.status(400).json({message: "User is not logged in."});
+
+  deleteReview(isbn, user.user)
+    .then((book) => {
+      return res.status(200).json({message: "Review deleted successfully", book: book});
+    })
+    .catch((error) => {
+      return res.status(400).json({message: error.message});  
+    });
+});
+
+// Delete a book review helper function
+function deleteReview(isbn, user){
+  return new Promise((resolve, reject) => {
+    if( !books[isbn] ) return reject(new Error("Book not found"));
+    if( !books[isbn].reviews[user]) return reject(new Error("Review not found"));
+
+    delete books[isbn].reviews[user];
+    resolve(books[isbn]);
+  });  
 }
 
 module.exports.authenticated = regd_users;
